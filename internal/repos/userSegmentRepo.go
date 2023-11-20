@@ -9,4 +9,5 @@ type UserSegmentRepo interface {
 	DeleteSegments(ctx context.Context, idUser, idSegment int) error
 	AddSegments(ctx context.Context, idUser, idSegment int) error
 	GetActiveUserSegments(ctx context.Context, idUser int) ([]string, error)
+	GetReport(ctx context.Context, year, month string) ([]string, error)
 }

@@ -20,6 +20,7 @@ func NewRouter(userController *controller.UserControllers, segmentController *co
 
 	router.GET("/api/usseg/active", userSegmentController.GetActiveSegments)
 	router.POST("/api/usseg/add", userSegmentController.AddSegments)
+	router.POST("/api/usseg/report", userSegmentController.GetReport)
 
 	return router
 }

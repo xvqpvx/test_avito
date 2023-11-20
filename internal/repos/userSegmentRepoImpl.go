@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"test_avito/internal/helper"
 )
@@ -44,7 +45,7 @@ func (us *UserSegmentRepoImpl) AddSegments(ctx context.Context, idUser, idSegmen
 	var existing int
 	err = tx.QueryRowContext(ctx, existingQuery, idUser, idSegment).Scan(&existing)
 	if err == nil {
-		query := "UPDATE users_segments SET is_active=TRUE WHERE id_user=? and id_segment=?"
+		query := "UPDATE users_segments SET is_active=TRUE, enter_date=NOW(), operation='insertion' WHERE id_user=? and id_segment=?"
 		_, err := tx.ExecContext(ctx, query, idUser, idSegment)
 		helper.PanicIfError(err)
 		return nil
@@ -60,7 +61,7 @@ func (us *UserSegmentRepoImpl) AddSegments(ctx context.Context, idUser, idSegmen
 		return nil
 	} else {
 		//Связи еще нет, и мы можем её добавить
-		insertQuery := "INSERT INTO users_segments (id_user, id_segment, enter_date, is_active) VALUES (?, ?, NOW(), TRUE)"
+		insertQuery := "INSERT INTO users_segments (id_user, id_segment, enter_date, is_active, operation) VALUES (?, ?, NOW(), TRUE, 'insertion')"
 		_, err = tx.ExecContext(ctx, insertQuery, idUser, idSegment)
 		helper.PanicIfError(err)
 	}
@@ -73,7 +74,7 @@ func (us *UserSegmentRepoImpl) DeleteSegments(ctx context.Context, idUser, idSeg
 	helper.PanicIfError(err)
 	defer helper.CommitOrRollback(tx)
 
-	query := "UPDATE users_segments SET is_active=FALSE WHERE id_user=? AND id_segment=?"
+	query := "UPDATE users_segments SET is_active=FALSE, operation='deletion', enter_date=NOW() WHERE id_user=? AND id_segment=?"
 	result, err := tx.ExecContext(ctx, query, idUser, idSegment)
 	log.Info().Msgf("idSegment - %d, idUser - %d", idSegment, idUser)
 	if err != nil {
@@ -108,4 +109,41 @@ func (us *UserSegmentRepoImpl) GetActiveUserSegments(ctx context.Context, idUser
 	}
 
 	return activeSegments, nil
+}
+
+func (us *UserSegmentRepoImpl) GetReport(ctx context.Context, year, month string) ([]string, error) {
+	tx, err := us.Db.Begin()
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollback(tx)
+
+	query := `
+		SELECT
+    		us.id_user,
+    		s.name AS segment_name,
+    		us.operation,
+    		us.enter_date
+		FROM
+    		users_segments us
+		JOIN
+    		segments s ON us.id_segment = s.id_segment
+		WHERE
+    		MONTH(us.enter_date) = ? AND
+    		YEAR(us.enter_date) = ?;`
+	result, err := tx.QueryContext(ctx, query, month, year)
+	helper.PanicIfError(err)
+	defer result.Close()
+
+	var report []string
+	for result.Next() {
+		var idUser int
+		var segmentName string
+		var operation string
+		var enterDate string
+
+		err = result.Scan(&idUser, &segmentName, &operation, &enterDate)
+		helper.PanicIfError(err)
+		report = append(report, fmt.Sprintf("%d; %s; %s; %s", idUser, segmentName, operation, enterDate))
+	}
+
+	return report, nil
 }

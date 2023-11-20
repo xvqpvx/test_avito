@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"test_avito/internal/data/request"
@@ -40,6 +41,21 @@ func (usc *UserSegmentControllers) GetActiveSegments(w http.ResponseWriter, r *h
 		Code:   200,
 		Status: "OK",
 		Data:   result,
+	}
+	helper.WriteResponseBody(w, webResponse)
+}
+
+func (usc *UserSegmentControllers) GetReport(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	date := request.GetReport{}
+	helper.ReadRequestBody(r, &date)
+
+	filename, err := usc.UserSegmentService.GetReport(r.Context(), date)
+	helper.PanicIfError(err)
+
+	webResponse := response.WebResponse{
+		Code:   200,
+		Status: "OK",
+		Data:   fmt.Sprintf("%s/%s", r.URL.String(), filename),
 	}
 	helper.WriteResponseBody(w, webResponse)
 }

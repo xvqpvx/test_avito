@@ -2,6 +2,11 @@ package service
 
 import (
 	"context"
+	"encoding/csv"
+	"fmt"
+	"os"
+	"strings"
+	"test_avito/internal/data/request"
 	"test_avito/internal/data/response"
 	"test_avito/internal/helper"
 	"test_avito/internal/repos"
@@ -41,4 +46,35 @@ func (uss *UserSegmentServiceImpl) GetActiveUserSegments(ctx context.Context, id
 		IdUser:         idUser,
 		ActiveSegments: activeSegments,
 	}
+}
+
+func (uss *UserSegmentServiceImpl) GetReport(ctx context.Context, request request.GetReport) (string, error) {
+	reportRows, err := uss.UserSegmentRepository.GetReport(ctx, request.Year, request.Month)
+	helper.PanicIfError(err)
+
+	filename := fmt.Sprintf("Report_%s-%s.csv", request.Year, request.Month)
+	file, err := os.Create(filename)
+	helper.PanicIfError(err)
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	writer.Comma = ';'
+	defer writer.Flush()
+
+	header := []string{"id", "segment", "operation", "date"}
+
+	err = writer.Write(header)
+	if err != nil {
+		return filename, err
+	}
+
+	for _, row := range reportRows {
+		fields := strings.Split(row, ";")
+		err := writer.Write(fields)
+
+		if err != nil {
+			return filename, err
+		}
+	}
+	return filename, nil
 }
