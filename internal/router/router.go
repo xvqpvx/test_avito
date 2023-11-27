@@ -2,11 +2,11 @@ package router
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"test_avito/cmd/controller"
+	controller2 "test_avito/internal/controller"
 )
 
-func NewRouter(userController *controller.UserControllers, segmentController *controller.SegmentControllers,
-	userSegmentController *controller.UserSegmentControllers) *httprouter.Router {
+func NewRouter(userController *controller2.UserControllers, segmentController *controller2.SegmentControllers,
+	userSegmentController *controller2.UserSegmentControllers) *httprouter.Router {
 	router := httprouter.New()
 
 	router.GET("/api/user/findById/:idUser", userController.FindById)

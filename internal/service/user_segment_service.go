@@ -7,7 +7,8 @@ import (
 )
 
 type UserSegmentService interface {
-	AddRemoveSegments(ctx context.Context, idUser int, segmentsToAdd []string, segmentsToDelete []string)
+	AddRemoveSegments(ctx context.Context, request request.AddSegmentsRequest)
 	GetActiveUserSegments(ctx context.Context, idUser int) response.UserSegmentResponse
 	GetReport(ctx context.Context, request request.GetReport) (string, error)
+	StartTTLChecker()
 }

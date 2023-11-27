@@ -4,8 +4,8 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"net/http"
-	"test_avito/cmd/controller"
 	"test_avito/internal/config"
+	controller2 "test_avito/internal/controller"
 	"test_avito/internal/helper"
 	"test_avito/internal/repos"
 	"test_avito/internal/router"
@@ -24,10 +24,11 @@ func main() {
 	userService := service.NewUserServiceImpl(userRepo)
 	segmentService := service.NewSegmentServiceImpl(segmentRepo)
 	userSegmentService := service.NewUserSegmentServiceImpl(userSegmentRepo)
+	userSegmentService.StartTTLChecker()
 
-	userController := controller.NewUserController(userService)
-	segmentController := controller.NewSegmentController(segmentService)
-	userSegmentController := controller.NewUserSegmentControllers(userSegmentService)
+	userController := controller2.NewUserController(userService)
+	segmentController := controller2.NewSegmentController(segmentService)
+	userSegmentController := controller2.NewUserSegmentControllers(userSegmentService)
 
 	routes := router.NewRouter(userController, segmentController, userSegmentController)
 

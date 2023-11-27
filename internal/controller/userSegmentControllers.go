@@ -22,7 +22,7 @@ func (usc *UserSegmentControllers) AddSegments(w http.ResponseWriter, r *http.Re
 	addSegments := request.AddSegmentsRequest{}
 	helper.ReadRequestBody(r, &addSegments)
 
-	usc.UserSegmentService.AddRemoveSegments(r.Context(), addSegments.IdUser, addSegments.SegmentsToAdd, addSegments.SegmentsToDelete)
+	usc.UserSegmentService.AddRemoveSegments(r.Context(), addSegments)
 	webResponse := response.WebResponse{
 		Code:   200,
 		Status: "OK",

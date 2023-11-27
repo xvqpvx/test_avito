@@ -13,4 +13,5 @@ type UserSegment struct {
 	EnterDate string
 	IsActive  bool
 	Operation Operations
+	Ttl       string
 }
